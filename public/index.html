@@ -302,6 +302,21 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min
 .created-key{margin-top:10px;padding:13px;border:1px dashed var(--a2);border-radius:12px;color:var(--a3);font:800 13px 'JetBrains Mono';overflow-wrap:anywhere}
 @media(max-width:380px){.telegram-link{font-size:8px;padding:0 7px}.top-actions{gap:4px}.admin-create{grid-template-columns:1fr 100px}}
 
+
+/* FINAL FIX: admin access is visible and modal always overlays member login */
+#adminPanel{z-index:700 !important}
+.member-login{z-index:500}
+.login-admin-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-width:150px;height:38px;margin:0 auto 18px;padding:0 16px;
+  border:1px solid color-mix(in srgb,var(--a2) 65%,transparent);
+  border-radius:12px;background:linear-gradient(110deg,rgba(0,170,255,.16),rgba(0,255,190,.10));
+  color:var(--a3);font:800 10px 'JetBrains Mono';letter-spacing:1.2px;
+  box-shadow:0 0 18px color-mix(in srgb,var(--a2) 18%,transparent);cursor:pointer;
+}
+.login-admin-btn:active{transform:scale(.97)}
+#adminPanel .ap{position:relative;z-index:701}
+
 </style>
 </head>
 <body>
@@ -311,6 +326,9 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min
     <div class="login-mark">HP</div>
     <div class="login-title">HACKII PANEL</div>
     <div class="login-sub">SECURE MEMBER ACCESS</div>
+    <button type="button" class="login-admin-btn" onclick="openAdmin()" aria-label="Open Admin Panel">
+      <i class="fa-solid fa-shield-halved"></i> ADMIN PANEL
+    </button>
     <div class="field login-field"><i class="fa-solid fa-key"></i><input id="memberKeyInput" type="password" placeholder="Enter your login key" autocomplete="off"></div>
     <button class="btn" id="memberLoginBtn" onclick="memberLogin()">LOGIN</button>
     <div id="memberLoginMessage" class="login-message">AUTHORIZED MEMBERS ONLY</div>
