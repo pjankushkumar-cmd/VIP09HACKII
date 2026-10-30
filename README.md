@@ -11,7 +11,7 @@
 Render provides `PORT` automatically. `NODE_ENV=production` is set in the Blueprint. No other environment variables are required.
 
 ## Admin
-Tap the shield icon in the top bar and enter `ADMIN_SECRET`. Create login keys for 1–365 days, revoke keys, and view total/active keys, online members, login count, last activity, cumulative online time and the member with the highest recorded online time. A new key is displayed once; copy it before closing the panel.
+On the member login screen, tap the **ADMIN PANEL** shield button (also available in the top bar after login) and enter `ADMIN_SECRET`. Create login keys for 1–365 days, revoke keys, and view total/active keys, online members, login count, last activity, cumulative online time and the member with the highest recorded online time. A new key is displayed once; copy it before closing the panel.
 
 ## Notes
 - Render provides HTTPS. Never share `ADMIN_SECRET`.
