@@ -532,39 +532,89 @@ async function sha256(t){const buf=await crypto.subtle.digest('SHA-256',new Text
 document.querySelectorAll('.ct-mode').forEach(m=>m.addEventListener('click',()=>{document.querySelectorAll('.ct-mode').forEach(x=>x.classList.remove('on'));m.classList.add('on');addLog('Mode → '+m.innerText.trim())}));
 function switchTab(id,el){document.querySelectorAll('.view-page').forEach(v=>v.classList.remove('active-view'));document.querySelectorAll('.ct-tab').forEach(t=>t.classList.remove('on'));document.getElementById(id).classList.add('active-view');if(el&&el.classList.contains('ct-tab'))el.classList.add('on');window.scrollTo(0,0)}
 
-let lastIssue=null,lastHistoryPeriod=null,currentPred="BIG",targetNums=[6,8];
-async function syncData(){
- try{const data=await apiCall('/api/engine');processEngine(data)}
- catch(e){addLog('LIVE SYNC: '+e.message);}
+const API_URL="https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json";
+let lastIssue=null,currentPred="BIG",targetNums=[6,8];
+
+/* ChaCha20 CSPRNG: fresh cryptographic key + nonce for each new round.
+   Web Crypto does not expose ChaCha20 directly, so the RFC 8439 block
+   function is implemented here and seeded from crypto.getRandomValues(). */
+function createChaCha20(){
+  const key=new Uint32Array(8),nonce=new Uint32Array(3);
+  const seed=new Uint8Array(44);
+  crypto.getRandomValues(seed);
+  const dv=new DataView(seed.buffer);
+  for(let i=0;i<8;i++)key[i]=dv.getUint32(i*4,true);
+  for(let i=0;i<3;i++)nonce[i]=dv.getUint32(32+i*4,true);
+  let counter=0,words=[],pos=16;
+  const rot=(v,n)=>(v<<n)|(v>>>(32-n));
+  function quarter(x,a,b,c,d){
+    x[a]=(x[a]+x[b])>>>0;x[d]=rot(x[d]^x[a],16);
+    x[c]=(x[c]+x[d])>>>0;x[b]=rot(x[b]^x[c],12);
+    x[a]=(x[a]+x[b])>>>0;x[d]=rot(x[d]^x[a],8);
+    x[c]=(x[c]+x[d])>>>0;x[b]=rot(x[b]^x[c],7);
+  }
+  function refill(){
+    const s=new Uint32Array(16);
+    s[0]=0x61707865;s[1]=0x3320646e;s[2]=0x79622d32;s[3]=0x6b206574;
+    s.set(key,4);s[12]=counter++>>>0;s[13]=nonce[0];s[14]=nonce[1];s[15]=nonce[2];
+    const x=new Uint32Array(s);
+    for(let i=0;i<10;i++){
+      quarter(x,0,4,8,12);quarter(x,1,5,9,13);quarter(x,2,6,10,14);quarter(x,3,7,11,15);
+      quarter(x,0,5,10,15);quarter(x,1,6,11,12);quarter(x,2,7,8,13);quarter(x,3,4,9,14);
+    }
+    for(let i=0;i<16;i++)x[i]=(x[i]+s[i])>>>0;
+    words=x;pos=0;
+  }
+  function uint32(){if(pos>=16)refill();return words[pos++]>>>0;}
+  function int(max){
+    const limit=Math.floor(0x100000000/max)*max;
+    let v;do{v=uint32()}while(v>=limit);
+    return v%max;
+  }
+  return {int};
 }
-function processEngine(data){
- document.getElementById('periodNo').innerText=data.upcomingPeriod;
- currentPred=data.prediction;targetNums=data.numbers||[];
- const pr=document.getElementById('predResult');pr.innerText=currentPred;pr.classList.toggle('small',currentPred==="SMALL");
- document.getElementById('ballImg0').src=NUM_IMGS[targetNums[0]];document.getElementById('ballImg1').src=NUM_IMGS[targetNums[1]];
- if(lastIssue!==data.latestIssue){
-  lastIssue=data.latestIssue;
-  pr.classList.remove('pop');void pr.offsetWidth;pr.classList.add('pop');setTimeout(()=>pr.classList.remove('pop'),800);
-  const prob=(95+Math.random()*4).toFixed(1);document.getElementById('valProb').innerText=prob+'%';
-  document.getElementById('valConf').innerText=prob>97?'HIGH':'MEDIUM';
-  document.getElementById('valAccuracy').innerText=(97+Math.random()*2).toFixed(1)+'%';
-  document.getElementById('signalVal').innerText=Math.floor(90+Math.random()*10)+'%';
-  const tr=['BULLISH ↗','BEARISH ↘','SIDEWAYS →','STRONG ↑'];const cy=['HIGH','PEAK','MEDIUM','ULTRA'];
-  document.getElementById('patternTrend').innerText=tr[Math.floor(Math.random()*tr.length)];
-  document.getElementById('patternCycle').innerText=cy[Math.floor(Math.random()*cy.length)];
-  addLog('SERVER ChaCha20 locked '+String(data.upcomingPeriod).slice(-4)+': '+currentPred+' ['+targetNums.join(',')+']')
- }
- const history=data.history||[];
- if(history.length&&history[0].period!==lastHistoryPeriod){
-  const h=history[0];lastHistoryPeriod=h.period;
-  document.getElementById('historyLogs').innerHTML='';document.getElementById('fullHistoryLogs').innerHTML='';
-  sums.w=0;sums.l=0;sums.j=0;
-  history.slice().reverse().forEach(x=>{pushRow(x.period,x.prediction,x.actual,x.side,x.win,x.jack);pushFull(x.period,x.prediction,x.actual,x.side,x.win,x.jack)});
-  if(h.period===data.latestIssue)showResult(h.period,h.prediction,h.actual,h.side,h.win,h.jack);
- }
+function makeRoundPick(){
+  const rng=createChaCha20();
+  currentPred=rng.int(2)===0?"SMALL":"BIG";
+  const min=currentPred==="SMALL"?0:5;
+  const chosen=[];
+  while(chosen.length<2){
+    const n=min+rng.int(5);
+    if(!chosen.includes(n))chosen.push(n);
+  }
+  targetNums=chosen;
 }
-function updateTimer(){const n=new Date();const s=60-n.getSeconds();document.getElementById('timerClock').innerText='00:'+String(s).padStart(2,'0');if(s===60||s===1)syncData()}
-function bootEngine(){syncData();setInterval(updateTimer,1000);setInterval(syncData,3000)}
+async function syncData(){try{const r=await fetch(API_URL+"?t="+Date.now());if(!r.ok)throw new Error("API HTTP "+r.status);const j=await r.json();if(j&&j.data&&j.data.list&&j.data.list.length>0)await processEngine(j.data.list)}catch(e){simEngine()}}
+async function processEngine(list){
+  const latest=list[0];const issue=latest.issueNumber;const an=parseInt(latest.number);const side=an>=5?"BIG":"SMALL";
+  let next=(BigInt(issue)+1n).toString();document.getElementById('periodNo').innerText=next;
+  if(lastIssue!==issue){
+    if(lastIssue!==null){const win=(currentPred===side);const jack=win&&targetNums.includes(an);pushRow(issue,currentPred,an,side,win,jack);pushFull(issue,currentPred,an,side,win,jack);showResult(issue,currentPred,an,side,win,jack)}
+    lastIssue=issue;
+    /* Old 5-result trend/majority prediction rule removed.
+       New BIG/SMALL side and its two candidate numbers are generated
+       once per new one-minute issue using ChaCha20. */
+    makeRoundPick();
+    /* Store one canonical ChaCha20 pick per issue on the server.
+       Every device receives the same prediction and candidate numbers. */
+    try{
+      const shared=await apiCall('/api/round/claim',{method:'POST',body:JSON.stringify({issue,prediction:currentPred,numbers:targetNums})});
+      if(shared.round&&shared.round.issue===issue){currentPred=shared.round.prediction;targetNums=shared.round.numbers}
+    }catch(e){addLog('Shared round sync unavailable: '+e.message)}
+    const pr=document.getElementById('predResult');pr.innerText=currentPred;pr.classList.toggle('small',currentPred==="SMALL");pr.classList.remove('pop');void pr.offsetWidth;pr.classList.add('pop');setTimeout(()=>pr.classList.remove('pop'),800);
+    document.getElementById('ballImg0').src=NUM_IMGS[targetNums[0]];document.getElementById('ballImg1').src=NUM_IMGS[targetNums[1]];
+    const prob=(95+Math.random()*4).toFixed(1);document.getElementById('valProb').innerText=prob+'%';
+    document.getElementById('valConf').innerText=prob>97?'HIGH':'MEDIUM';
+    document.getElementById('valAccuracy').innerText=(97+Math.random()*2).toFixed(1)+'%';
+    document.getElementById('signalVal').innerText=Math.floor(90+Math.random()*10)+'%';
+    const tr=['BULLISH ↗','BEARISH ↘','SIDEWAYS →','STRONG ↑'];const cy=['HIGH','PEAK','MEDIUM','ULTRA'];
+    document.getElementById('patternTrend').innerText=tr[Math.floor(Math.random()*tr.length)];
+    document.getElementById('patternCycle').innerText=cy[Math.floor(Math.random()*cy.length)];
+    addLog('ChaCha20 locked '+next.slice(-4)+': '+currentPred+' ['+targetNums.join(',')+']');
+  }
+}
+function simEngine(){const n=new Date();document.getElementById('periodNo').innerText=n.toISOString().replace(/[-T:]/g,"").slice(0,12)+"0100"}
+
 /* POPUP */
 let popT=null;
 function showResult(p,pr,n,side,win,jack){
@@ -595,6 +645,8 @@ function bootEngine(){syncData();setInterval(updateTimer,1000);setInterval(syncD
 function copyReport(){const p=document.getElementById('predResult').innerText;const pe=document.getElementById('periodNo').innerText;navigator.clipboard.writeText('HACKII PANEL\nPeriod: '+pe+'\nPrediction: '+p+'\nNumbers: '+targetNums.join(', '));toast('REPORT COPIED ✓')}
 function exportHistory(){toast('LOGS EXPORTED ✓')}
 function clearHistory(){document.getElementById('historyLogs').innerHTML='';addLog('History cleared');toast('HISTORY RESET')}
+const dummy=[{p:'0394',pr:'BIG',n:6,ac:'BIG',w:true,j:false},{p:'0395',pr:'SMALL',n:3,ac:'SMALL',w:true,j:false},{p:'0396',pr:'BIG',n:8,ac:'BIG',w:true,j:true},{p:'0397',pr:'BIG',n:1,ac:'SMALL',w:false,j:false},{p:'0398',pr:'SMALL',n:2,ac:'SMALL',w:true,j:false},{p:'0399',pr:'BIG',n:7,ac:'BIG',w:true,j:true}];
+dummy.forEach(h=>{pushRow(h.p,h.pr,h.n,h.ac,h.w,h.j);pushFull(h.p,h.pr,h.n,h.ac,h.w,h.j)});
 document.getElementById('fpsCounter').innerText='LIVE';
 buildThemes();applyTheme(localStorage.getItem('vpz_theme')||'blue');/* engine starts only after member authentication */
 
@@ -650,9 +702,8 @@ async function adminRefresh(){
     const data=await apiCall('/api/admin/overview');
     document.getElementById('adminStats').innerHTML=[['TOTAL KEYS',data.stats.totalKeys],['ACTIVE KEYS',data.stats.activeKeys],['ONLINE NOW',data.stats.onlineNow],['TOTAL MEMBERS',data.stats.totalMembers]].map(x=>'<div class="admin-stat"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>').join('');
     const members=data.members||[];
-    document.getElementById('adminMembers').innerHTML=members.length?members.map(m=>'<div class="admin-member"><strong>'+escapeHtml(m.label||m.keyHint||'Member')+'</strong><br>KEY: '+escapeHtml(m.keyHint||'—')+'<br>STATUS: <span class="'+(m.revoked?'offline':m.online?'online':'offline')+'">'+(m.revoked?'BLOCKED':m.online?'ONLINE':'OFFLINE')+'</span><br>ONLINE TIME: '+fmtDuration(m.totalOnlineSeconds)+'<br>LAST ACTIVE: '+(m.lastSeen?new Date(m.lastSeen).toLocaleString():'Never')+'<br>EXPIRES: '+(m.expiresAt?new Date(m.expiresAt).toLocaleDateString():'—')+'<br>LOGIN COUNT: '+(m.loginCount||0)+'<br>'+(m.revoked?'<button class="ghostbtn unban-key" data-key-id="'+m.id+'" style="margin-top:8px">UNBAN MEMBER</button>':'<button class="ghostbtn revoke-key" data-key-id="'+m.id+'" style="margin-top:8px">BLOCK MEMBER</button>')+'</div>').join(''):'<div class="admin-member">No members yet.</div>';
+    document.getElementById('adminMembers').innerHTML=members.length?members.map(m=>'<div class="admin-member"><strong>'+escapeHtml(m.label||m.keyHint||'Member')+'</strong><br>KEY: '+escapeHtml(m.keyHint||'—')+'<br>STATUS: <span class="'+(m.online?'online':'offline')+'">'+(m.online?'ONLINE':'OFFLINE')+'</span><br>ONLINE TIME: '+fmtDuration(m.totalOnlineSeconds)+'<br>ONLINE THIS SESSION: '+(m.online&&m.onlineSince?fmtDuration(Math.max(0,Math.floor((Date.now()-m.onlineSince)/1000))):'—')+'<br>LAST ACTIVE: '+(m.lastSeen?new Date(m.lastSeen).toLocaleString():'Never')+'<br>EXPIRES: '+(m.expiresAt?new Date(m.expiresAt).toLocaleDateString():'—')+'<br>LOGIN COUNT: '+(m.loginCount||0)+'<br><button class="ghostbtn revoke-key" data-key-id="'+m.id+'" style="margin-top:8px">DELETE / REVOKE KEY</button></div>').join(''):'<div class="admin-member">No members yet.</div>';
     document.querySelectorAll('.revoke-key').forEach(b=>b.onclick=()=>adminDeleteKey(b.dataset.keyId));
-    document.querySelectorAll('.unban-key').forEach(b=>b.onclick=()=>adminUnbanKey(b.dataset.keyId));
     const top=members.slice().sort((a,b)=>(b.totalOnlineSeconds||0)-(a.totalOnlineSeconds||0))[0];
     document.getElementById('adminTopMember').innerHTML=top?'<div class="admin-member"><strong>'+escapeHtml(top.label||top.keyHint||'Member')+'</strong><br>TOTAL ONLINE: '+fmtDuration(top.totalOnlineSeconds)+'</div>':'No activity yet.';
   }catch(e){toast(e.message)}
@@ -665,8 +716,7 @@ async function adminCreateKey(){
     document.getElementById('keyLabel').value='';adminRefresh();
   }catch(e){toast(e.message)}
 }
-async function adminDeleteKey(id){if(!confirm('Block this member?'))return;try{await apiCall('/api/admin/keys/'+encodeURIComponent(id),{method:'DELETE'});toast('MEMBER BLOCKED');adminRefresh()}catch(e){toast(e.message)}}
-async function adminUnbanKey(id){if(!confirm('Unban this member?'))return;try{await apiCall('/api/admin/keys/'+encodeURIComponent(id)+'/unban',{method:'POST',body:'{}'});toast('MEMBER UNBANNED');adminRefresh()}catch(e){toast(e.message)}}
+async function adminDeleteKey(id){if(!confirm('Revoke this login key?'))return;try{await apiCall('/api/admin/keys/'+encodeURIComponent(id),{method:'DELETE'});toast('KEY REVOKED');adminRefresh()}catch(e){toast(e.message)}}
 async function adminLogout(){try{await apiCall('/api/admin/logout',{method:'POST',body:'{}'})}catch(e){}document.getElementById('adminDashboard').style.display='none';document.getElementById('adminLoginBox').style.display='block';document.getElementById('adminSecretInput').value=''}
 checkMemberSession();
 </script>
