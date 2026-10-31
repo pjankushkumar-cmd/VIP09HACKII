@@ -273,49 +273,20 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min
 .conf{display:none !important}
 
 
-/* HACKII PANEL SERVER LOGIN + ADMIN */
-.top-actions{display:flex;align-items:center;gap:7px}
-.telegram-link,.admin-open-btn{height:34px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border-radius:12px;border:1px solid var(--gb);background:var(--glass);color:var(--a3);font:800 9px 'JetBrains Mono';text-decoration:none}
-.admin-open-btn{width:36px;padding:0;font-size:14px;cursor:pointer}
-.member-login{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:22px;background:radial-gradient(90% 60% at 50% 20%,color-mix(in srgb,var(--a1) 35%,transparent),transparent 70%),var(--bg)}
-.login-card{width:100%;max-width:420px;padding:26px 20px;border:1px solid color-mix(in srgb,var(--a2) 40%,transparent);border-radius:26px;background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(0,0,0,.35));box-shadow:0 18px 55px rgba(0,0,0,.45);text-align:center}
-.login-mark{width:72px;height:72px;margin:0 auto 15px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(135deg,var(--a1),var(--a2));color:#001018;font:900 24px 'Orbitron'}
-.login-title{font:900 22px 'Orbitron';letter-spacing:1px;color:var(--a3)}
-.login-sub{margin:8px 0 22px;color:var(--mut);font:700 10px 'JetBrains Mono';letter-spacing:3px}
-.login-field{margin-bottom:14px}.login-field input{letter-spacing:1px;font-size:14px}
-.login-message{min-height:20px;margin-top:13px;color:var(--mut);font:700 10px 'JetBrains Mono'}
-.login-telegram{display:inline-block;margin-top:14px;color:var(--a2);font:800 11px 'JetBrains Mono';text-decoration:none}
-.admin-wide{max-width:520px;max-height:88vh;overflow:auto}
-.admin-head{display:flex;justify-content:space-between;align-items:center}
-.admin-close{border:1px solid var(--gb);background:transparent;color:var(--txt);border-radius:10px;padding:8px 11px}
-.admin-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
-.admin-stat{padding:12px;border:1px solid var(--gb);border-radius:14px;background:rgba(0,0,0,.3)}
-.admin-stat b{display:block;font:900 20px 'Orbitron';color:var(--a2)}
-.admin-stat span{font:700 9px 'JetBrains Mono';color:var(--mut)}
-.admin-section-title{margin:18px 0 9px;color:var(--a3);font:800 11px 'Orbitron';letter-spacing:1px}
-.admin-create{display:grid;grid-template-columns:1fr 115px;gap:8px}
-.admin-create input,.admin-create select{min-width:0;height:42px;padding:0 10px;border-radius:12px;border:1px solid var(--gb);background:#080e1b;color:var(--txt)}
-.admin-list{display:grid;gap:8px}
-.admin-member{padding:11px;border:1px solid var(--gb);border-radius:13px;background:rgba(0,0,0,.3);font:600 11px 'JetBrains Mono';color:var(--mut);overflow-wrap:anywhere}
-.admin-member strong{color:var(--txt)}
-.admin-member .online{color:var(--ok)}.admin-member .offline{color:var(--bad)}
-.created-key{margin-top:10px;padding:13px;border:1px dashed var(--a2);border-radius:12px;color:var(--a3);font:800 13px 'JetBrains Mono';overflow-wrap:anywhere}
-@media(max-width:380px){.telegram-link{font-size:8px;padding:0 7px}.top-actions{gap:4px}.admin-create{grid-template-columns:1fr 100px}}
-
-
-/* FINAL FIX: admin access is visible and modal always overlays member login */
-#adminPanel{z-index:700 !important}
-.member-login{z-index:500}
-.login-admin-btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  min-width:150px;height:38px;margin:0 auto 18px;padding:0 16px;
-  border:1px solid color-mix(in srgb,var(--a2) 65%,transparent);
-  border-radius:12px;background:linear-gradient(110deg,rgba(0,170,255,.16),rgba(0,255,190,.10));
-  color:var(--a3);font:800 10px 'JetBrains Mono';letter-spacing:1.2px;
-  box-shadow:0 0 18px color-mix(in srgb,var(--a2) 18%,transparent);cursor:pointer;
-}
-.login-admin-btn:active{transform:scale(.97)}
-#adminPanel .ap{position:relative;z-index:701}
+.top-actions{display:flex;align-items:center;gap:8px}
+.telegram-top,.admin-shield{height:38px;min-width:38px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--gb);border-radius:13px;background:var(--glass);color:var(--a3);text-decoration:none;font:800 10px 'JetBrains Mono'}
+.admin-shield{width:40px;padding:0;font-size:16px}
+.member-login{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:22px;background:radial-gradient(90% 60% at 50% 20%,rgba(0,150,255,.24),transparent 70%),var(--bg)}
+.login-card{width:100%;max-width:390px;padding:25px 20px;border:1px solid rgba(0,229,255,.28);border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(0,0,0,.4));box-shadow:0 18px 55px #0009;text-align:center}
+.login-logo{width:66px;height:66px;margin:0 auto 14px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(135deg,var(--a1),var(--a2));color:#001018;font:900 23px Orbitron}
+.login-card h2{font:900 20px Orbitron;color:var(--a3);letter-spacing:1px}
+.login-card p{margin:8px 0 18px;color:var(--mut);font:700 9px 'JetBrains Mono';letter-spacing:2px}
+.login-admin{display:inline-flex;align-items:center;gap:8px;margin:0 auto 14px;padding:10px 16px;border:1px solid rgba(0,229,255,.4);border-radius:11px;color:var(--a3);background:rgba(0,160,255,.1);text-decoration:none;font:800 10px 'JetBrains Mono'}
+#memberKeyInput{display:block;width:100%;height:48px;margin:0 0 12px;padding:0 14px;border:1px solid var(--gb);border-radius:12px;background:#070d19;color:var(--txt);font:600 12px 'JetBrains Mono'}
+#memberLoginBtn{width:100%;height:48px;border:0;border-radius:12px;background:linear-gradient(100deg,var(--a1),var(--a2));color:#001018;font:900 12px Orbitron}
+#memberLoginMessage{min-height:20px;margin-top:12px;color:var(--mut);font:700 9px 'JetBrains Mono'}
+.login-telegram{display:inline-block;margin-top:10px;color:var(--a2);text-decoration:none;font:800 10px 'JetBrains Mono'}
+@media(max-width:390px){.telegram-top{font-size:8px;padding:0 7px}.top-actions{gap:4px}}
 
 </style>
 </head>
@@ -323,16 +294,14 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min
 
 <div id="memberLogin" class="member-login">
   <div class="login-card">
-    <div class="login-mark">HP</div>
-    <div class="login-title">HACKII PANEL</div>
-    <div class="login-sub">SECURE MEMBER ACCESS</div>
-    <button type="button" class="login-admin-btn" onclick="openAdmin()" aria-label="Open Admin Panel">
-      <i class="fa-solid fa-shield-halved"></i> ADMIN PANEL
-    </button>
-    <div class="field login-field"><i class="fa-solid fa-key"></i><input id="memberKeyInput" type="password" placeholder="Enter your login key" autocomplete="off"></div>
-    <button class="btn" id="memberLoginBtn" onclick="memberLogin()">LOGIN</button>
-    <div id="memberLoginMessage" class="login-message">AUTHORIZED MEMBERS ONLY</div>
-    <a class="login-telegram" href="https://t.me/+8Lms2P9p3BozY2M1" target="_blank" rel="noopener"><i class="fa-brands fa-telegram"></i> JOIN TELEGRAM CHANNEL</a>
+    <div class="login-logo">HP</div>
+    <h2>HACKII PANEL</h2>
+    <p>SECURE MEMBER ACCESS</p>
+    <a class="login-admin" href="/admin"><i class="fa-solid fa-shield-halved"></i> ADMIN PANEL</a>
+    <input id="memberKeyInput" type="password" placeholder="Enter your login key" autocomplete="off">
+    <button id="memberLoginBtn" onclick="memberLogin()">LOGIN</button>
+    <div id="memberLoginMessage">AUTHORIZED MEMBERS ONLY</div>
+    <a class="login-telegram" href="https://t.me/+8Lms2P9p3BozY2M1" target="_blank" rel="noopener">JOIN TELEGRAM CHANNEL</a>
   </div>
 </div>
 
@@ -347,8 +316,8 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min
 <div class="top">
   <div class="brand"><div class="mark">VP</div><div><h1 class="shine">HACKII PANEL</h1><p>SECURE • V4.0</p></div></div>
   <div class="top-actions">
-    <a class="telegram-link" href="https://t.me/+8Lms2P9p3BozY2M1" target="_blank" rel="noopener"><i class="fa-brands fa-telegram"></i> TELEGRAM</a>
-    <button class="admin-open-btn" onclick="openAdmin()" aria-label="Admin panel"><i class="fa-solid fa-user-shield"></i></button>
+    <a class="telegram-top" href="https://t.me/+8Lms2P9p3BozY2M1" target="_blank" rel="noopener"><i class="fa-brands fa-telegram"></i> TELEGRAM</a>
+    <a class="admin-shield" href="/admin" aria-label="Admin panel"><i class="fa-solid fa-shield-halved"></i></a>
     <div class="live"><div class="dot"></div><span id="fpsCounter">LIVE</span></div>
   </div>
 </div>
@@ -405,11 +374,28 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min
   </div>
 
   <div class="card">
+    <div class="ch"><h3><i class="fa-solid fa-atom"></i> ENGINE CORE</h3><span class="tag">● RUNNING</span></div>
+    <div class="eng">
+      <div class="elist">Episodes <b id="mEpisodes">4,892</b><br>Reward <b id="mReward">+0.98</b><br>Iterations <b id="mIter">12,400</b><br>Precision <b id="mAcc">98.4%</b><span id="mConf" style="display:none">99</span></div>
+      <div class="ring"><span class="shine">88%</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h3><i class="fa-solid fa-signal"></i> NETWORK PULSE</h3><span class="tag" id="patternCycle">HIGH</span></div>
+    <div class="nbars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="nfoot"><span><i class="fa-solid fa-tower-broadcast" style="color:var(--a2)"></i> PRIME-01 NODES</span><span id="patternTrend" style="color:var(--a2)">BULLISH ↗</span></div>
+  </div>
+
+  <div class="card">
     <div class="ch"><h3><i class="fa-solid fa-clock-rotate-left"></i> LATEST SIGNALS</h3><span class="tag" onclick="switchTab('viewHistory',document.querySelectorAll('.ct-tab')[2])">VIEW ALL →</span></div>
     <div class="hist" id="historyLogs"></div>
   </div>
 
-
+  <div class="term">
+    <div class="term-h"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>&nbsp; PRIME-TERMINAL</div>
+    <div id="logConsole"><div>Prime engine booted</div><div>Linked to sky nodes</div></div>
+  </div>
 </div>
 
 <div id="viewRadar" class="view-page">
@@ -445,7 +431,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min
 <div id="viewProfile" class="view-page">
   <div class="card" style="text-align:center">
     <div class="avatar">VP</div>
-    <div class="orb shine" style="font-size:16px;font-weight:900">HACKII PANEL</div>
+    <div class="orb shine" style="font-size:16px;font-weight:900">HACKII</div>
     <p class="mono" style="font-size:10px;color:var(--a2);margin-top:6px">SECURE BUILD • V4.0 • VIP LICENSE ACTIVE</p>
     <div class="perf" style="margin-top:14px">
       <div class="pi"><label>KEY VALIDITY</label><strong style="font-size:14px">LOGIN REMOVED</strong></div>
@@ -493,30 +479,6 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--txt);min
   </div>
 </div>
 
-<!-- SERVER ADMIN PANEL -->
-<div id="adminPanel" onclick="if(event.target===this)closeAdmin()">
-  <div class="ap admin-wide">
-    <div class="admin-head"><div><h2>HACKII ADMIN</h2><div class="sub2">SERVER CONTROL CENTER</div></div><button class="admin-close" onclick="closeAdmin()">✕</button></div>
-    <div id="adminLoginBox">
-      <div class="field" style="height:52px"><i class="fa-solid fa-shield-halved"></i><input type="password" id="adminSecretInput" placeholder="ADMIN_SECRET" autocomplete="current-password"></div>
-      <button class="gbtn" onclick="adminLogin()">ADMIN LOGIN</button>
-    </div>
-    <div id="adminDashboard" style="display:none">
-      <div class="admin-stats" id="adminStats"></div>
-      <div class="admin-section-title">GENERATE LOGIN KEY</div>
-      <div class="admin-create"><input id="keyLabel" maxlength="40" placeholder="Member label (optional)"><select id="keyDays"><option value="1">1 day</option><option value="7" selected>7 days</option><option value="15">15 days</option><option value="30">30 days</option><option value="40">40 days</option><option value="90">90 days</option><option value="365">365 days</option></select></div>
-      <button class="gbtn" onclick="adminCreateKey()">GENERATE KEY</button>
-      <div id="createdKey" class="created-key" style="display:none"></div>
-      <div class="admin-section-title">MEMBERS & LOGIN KEYS</div>
-      <div id="adminMembers" class="admin-list">Loading…</div>
-      <div class="admin-section-title">MOST ONLINE TIME</div>
-      <div id="adminTopMember" class="admin-list"></div>
-      <button class="ghostbtn" onclick="adminRefresh()">REFRESH DATA</button>
-      <button class="ghostbtn" onclick="adminLogout()">ADMIN LOGOUT</button>
-    </div>
-  </div>
-</div>
-
 <script>
 const NUM_IMGS={0:"https://i.postimg.cc/vZsq9nGm/num0-4-10.png",1:"https://i.postimg.cc/mDt8RNyD/num0-4-6.png",2:"https://i.postimg.cc/ryRQPjmw/num0-4-9.png",3:"https://i.postimg.cc/HLP9S81T/num0-4-1.png",4:"https://i.postimg.cc/K80Pz3zL/num0-4-2.png",5:"https://i.postimg.cc/jj9y6Vyd/num0-4-11.png",6:"https://i.postimg.cc/gjyRPnQV/num0-4-12.png",7:"https://i.postimg.cc/NfYmkk2T/num0-4-4.png",8:"https://i.postimg.cc/vHz9qxWb/num0-4-5.png",9:"https://i.postimg.cc/ryRQPjmw/num0-4-9.png"};
 Object.values(NUM_IMGS).forEach(u=>{const im=new Image();im.src=u;});
@@ -535,144 +497,104 @@ function switchTab(id,el){document.querySelectorAll('.view-page').forEach(v=>v.c
 const API_URL="https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json";
 let lastIssue=null,currentPred="BIG",targetNums=[6,8];
 
-/* Shared server-side ChaCha20 signal: one result for every logged-in member. */
-let lastRenderedUpcoming=null;
-const renderedRounds=new Set();
+
+/* Shared ChaCha20 signal is generated once by the server for each API period. */
+let lastSignalIssue=null;
+const renderedRoundIds=new Set();
 async function syncData(){
   try{
-    const payload=await apiCall('/api/signal');
-    if(payload&&payload.list&&payload.list.length)processEngine(payload.list,payload.signal,payload.rounds||[]);
-    else addLog('Waiting for official API history…');
-  }catch(e){addLog('API sync unavailable: '+e.message);}
+    const data=await apiCall('/api/signal');
+    if(data&&data.list&&data.list.length)processEngine(data.list,data.signal,data.rounds||[]);
+  }catch(e){
+    const state=document.getElementById('fpsCounter');
+    if(state)state.innerText='API WAIT';
+    addLog('Official API unavailable; waiting for live data');
+  }
 }
 function processEngine(list,signal,rounds){
-  const latest=list[0];if(!latest||!signal)return;
-  const actualIssue=String(latest.issueNumber);
-  (rounds||[]).slice().reverse().forEach(r=>{
-    const id=String(r.issue);if(renderedRounds.has(id))return;renderedRounds.add(id);
-    pushRow(id,r.prediction,r.actualNumber,r.actualSide,!!r.win,!!r.jackpot);
-    pushFull(id,r.prediction,r.actualNumber,r.actualSide,!!r.win,!!r.jackpot);
+  if(!list||!list.length||!signal)return;
+  const latest=list[0],issue=String(latest.issueNumber);
+  const next=String(signal.upcomingIssue);
+  document.getElementById('periodNo').innerText=next;
+  currentPred=signal.prediction;
+  targetNums=signal.numbers.map(Number);
+
+  // Rebuild the visible history from the same official API rows on every device.
+  // Historical rows without a saved prediction are labelled API RESULT, never fake WIN/LOSS.
+  const verified=new Map((rounds||[]).map(r=>[String(r.issue),r]));
+  function apiResultRow(item){
+    const n=Number(item.number),side=n>=5?'BIG':'SMALL',d=document.createElement('div');
+    d.className='ct-hrow';
+    d.innerHTML='<div class="p">'+String(item.issueNumber).slice(-4)+'</div><div class="pred">'+side+'</div><img src="'+NUM_IMGS[n]+'" alt="'+n+'"><div class="act">'+side+' • '+n+'</div><span class="st">API RESULT</span>';
+    return d;
+  }
+  const history=(list||[]).slice(0,20);
+  const small=document.getElementById('historyLogs'),full=document.getElementById('fullHistoryLogs');
+  small.innerHTML='';full.innerHTML='';
+  let w=0,l=0,j=0;
+  history.forEach(item=>{
+    const rec=verified.get(String(item.issueNumber));
+    const row=rec?mkRow(rec.issue,rec.prediction,rec.actualNumber,rec.actualSide,!!rec.win,!!rec.jackpot):apiResultRow(item);
+    full.appendChild(row.cloneNode(true));
+    if(rec){if(rec.jackpot)j++;if(rec.win)w++;else l++;}
   });
-  const upcoming=String(signal.upcomingIssue);
-  document.getElementById('periodNo').innerText=upcoming;
-  currentPred=signal.prediction;targetNums=signal.numbers.map(Number);
-  const pr=document.getElementById('predResult');pr.innerText=currentPred;
-  pr.classList.toggle('small',currentPred==='SMALL');
+  history.slice(0,7).forEach(item=>{
+    const rec=verified.get(String(item.issueNumber));
+    small.appendChild(rec?mkRow(rec.issue,rec.prediction,rec.actualNumber,rec.actualSide,!!rec.win,!!rec.jackpot):apiResultRow(item));
+  });
+  sums.w=w;sums.l=l;sums.j=j;updSum();
+
+  const pr=document.getElementById('predResult');
+  pr.innerText=currentPred;
+  pr.classList.toggle('small',currentPred==="SMALL");
   document.getElementById('ballImg0').src=NUM_IMGS[targetNums[0]];
   document.getElementById('ballImg1').src=NUM_IMGS[targetNums[1]];
-  if(lastRenderedUpcoming!==upcoming){lastRenderedUpcoming=upcoming;addLog('SERVER ChaCha20 locked '+upcoming+': '+currentPred+' ['+targetNums.join(',')+']');}
-  const settled=(rounds||[]).find(r=>String(r.issue)===actualIssue);
-  if(settled&&window.__lastPopupIssue!==actualIssue){window.__lastPopupIssue=actualIssue;showResult(actualIssue,settled.prediction,settled.actualNumber,settled.actualSide,!!settled.win,!!settled.jackpot);}
+
+  if(lastSignalIssue!==next){
+    lastSignalIssue=next;
+    pr.classList.remove('pop');void pr.offsetWidth;pr.classList.add('pop');
+    setTimeout(()=>pr.classList.remove('pop'),800);
+    addLog('Server ChaCha20 locked '+next+': '+currentPred+' ['+targetNums.join(',')+']');
+  }
 }
 
-/* POPUP */
-let popT=null;
-function showResult(p,pr,n,side,win,jack){
-  const box=document.getElementById('rpBox');box.className='rp'+(jack?' jack':win?'':' loss');
-  document.getElementById('rpIco').innerHTML=jack?'<i class="fa-solid fa-crown"></i>':win?'<i class="fa-solid fa-trophy"></i>':'<i class="fa-solid fa-heart-crack"></i>';
-  document.getElementById('rpTtl').innerText=jack?'JACKPOT':win?'WIN':'LOSS';
-  document.getElementById('rpMsg').innerText=jack?'Exact number hit! Mega jackpot 👑':win?'Prediction matched — '+side+' ✓':'Result was '+side+' • next round loading';
-  document.getElementById('rpPer').innerText=String(p).slice(-4);
-  document.getElementById('rpBall').src=NUM_IMGS[n];document.getElementById('rpPred').innerText=pr;
-  const bar=document.getElementById('rpBar');bar.style.animation='none';void bar.offsetWidth;bar.style.animation='';
-  const pop=document.getElementById('resPop');pop.classList.remove('show');void pop.offsetWidth;pop.classList.add('show');
-  if(win)confetti(jack?120:60,jack);
-  if(navigator.vibrate)navigator.vibrate(win?[60,40,60]:[200]);
-  clearTimeout(popT);popT=setTimeout(closePop,5000);
-}
-function closePop(){document.getElementById('resPop').classList.remove('show')}
-function confetti(n,gold){/* Disabled: avoids DOM-heavy particle effects on mobile. */}
-
-function statusPill(win,jack){if(jack)return '<span class="st JACKPOT">JACKPOT 👑</span>';if(win)return '<span class="st WIN">WIN ✓</span>';return '<span class="st LOSS">LOSS ✗</span>'}
-function mkRow(p,pr,n,ac,w,j){const d=document.createElement('div');d.className='ct-hrow '+(j?'j':w?'w':'l');d.innerHTML='<div class="p">'+String(p).slice(-4)+'</div><div class="pred '+pr+'">'+pr+'</div><img src="'+NUM_IMGS[n]+'" alt="'+n+'"><div class="act">'+ac+' • '+n+'</div>'+statusPill(w,j);return d}
-const sums={w:0,l:0,j:0};
-function updSum(){document.getElementById('sumWin').innerText=sums.w;document.getElementById('sumLoss').innerText=sums.l;document.getElementById('sumJack').innerText=sums.j}
-function pushRow(p,pr,n,ac,w,j){const tb=document.getElementById('historyLogs');tb.insertBefore(mkRow(p,pr,n,ac,w,j),tb.firstChild);while(tb.children.length>7)tb.removeChild(tb.lastChild)}
-function pushFull(p,pr,n,ac,w,j){const tb=document.getElementById('fullHistoryLogs');tb.insertBefore(mkRow(p,pr,n,ac,w,j),tb.firstChild);while(tb.children.length>20)tb.removeChild(tb.lastChild);if(j)sums.j++;if(w)sums.w++;else sums.l++;updSum()}
-function addLog(m){const c=document.getElementById('logConsole');const l=document.createElement('div');l.innerText=m;c.appendChild(l);c.scrollTop=c.scrollHeight;while(c.children.length>30)c.removeChild(c.firstChild)}
-function updateTimer(){const n=new Date();const s=60-n.getSeconds();document.getElementById('timerClock').innerText='00:'+String(s).padStart(2,'0');if(s===60||s===1)syncData()}
-function bootEngine(){syncData();setInterval(updateTimer,1000);setInterval(syncData,3000)}
-function copyReport(){const p=document.getElementById('predResult').innerText;const pe=document.getElementById('periodNo').innerText;navigator.clipboard.writeText('HACKII PANEL\nPeriod: '+pe+'\nPrediction: '+p+'\nNumbers: '+targetNums.join(', '));toast('REPORT COPIED ✓')}
-function exportHistory(){toast('LOGS EXPORTED ✓')}
-function clearHistory(){document.getElementById('historyLogs').innerHTML='';addLog('History cleared');toast('HISTORY RESET')}
 document.getElementById('fpsCounter').innerText='LIVE';
-buildThemes();applyTheme(localStorage.getItem('vpz_theme')||'blue');/* engine starts only after member authentication */
+buildThemes();applyTheme(localStorage.getItem('vpz_theme')||'blue');
 
-/* ===== SERVER AUTH + ADMIN ===== */
-let memberHeartbeat=null, adminRefreshTimer=null;
 async function apiCall(url,options={}){
   const res=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
   const data=await res.json().catch(()=>({error:'Invalid server response'}));
   if(!res.ok)throw new Error(data.error||'Request failed');
   return data;
 }
-function loginMessage(msg,bad=false){const el=document.getElementById('memberLoginMessage');el.textContent=msg;el.style.color=bad?'var(--bad)':'var(--mut)'}
-async function memberLogin(){
-  const key=document.getElementById('memberKeyInput').value.trim();
-  if(!key){loginMessage('PLEASE ENTER YOUR LOGIN KEY',true);return}
-  const btn=document.getElementById('memberLoginBtn');btn.disabled=true;btn.textContent='VERIFYING…';
-  try{
-    await apiCall('/api/login',{method:'POST',body:JSON.stringify({key})});
-    document.getElementById('memberLogin').style.display='none';
-    startMemberHeartbeat();
-    if(!window.__appStarted){window.__appStarted=true;bootEngine()}
-  }catch(e){loginMessage(e.message,true)}
-  finally{btn.disabled=false;btn.textContent='LOGIN'}
-}
-async function checkMemberSession(){
-  try{const me=await apiCall('/api/me');if(me.authenticated){document.getElementById('memberLogin').style.display='none';startMemberHeartbeat();if(!window.__appStarted){window.__appStarted=true;bootEngine()}}}catch(e){}
-}
+function loginMessage(text,bad=false){const el=document.getElementById('memberLoginMessage');el.textContent=text;el.style.color=bad?'var(--bad)':'var(--mut)'}
 function getDeviceTelemetry(){
   let deviceId='';
-  try{deviceId=localStorage.getItem('hackii_device_id')||'';if(!deviceId){deviceId=crypto.randomUUID?crypto.randomUUID():('dev-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));localStorage.setItem('hackii_device_id',deviceId)}}catch(e){deviceId='session-'+(crypto.randomUUID?crypto.randomUUID():Date.now())}
-  return {deviceId,userAgent:String(navigator.userAgent||'').slice(0,240),platform:String(navigator.platform||'Unknown').slice(0,80),language:String(navigator.language||'').slice(0,30),screen:String((window.screen?.width||0)+'x'+(window.screen?.height||0)).slice(0,30)};
+  try{deviceId=localStorage.getItem('hackii_device_id')||'';if(!deviceId){deviceId=crypto.randomUUID?crypto.randomUUID():'dev-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);localStorage.setItem('hackii_device_id',deviceId)}}catch(e){deviceId='session-'+Date.now()}
+  return {deviceId,userAgent:String(navigator.userAgent||'').slice(0,240),platform:String(navigator.platform||'Unknown').slice(0,80),screen:String((window.screen?.width||0)+'x'+(window.screen?.height||0)).slice(0,30),language:String(navigator.language||'').slice(0,30)};
 }
-function startMemberHeartbeat(){
-  if(memberHeartbeat)clearInterval(memberHeartbeat);
-  const telemetry=getDeviceTelemetry();
-  const beat=()=>apiCall('/api/heartbeat',{method:'POST',body:JSON.stringify(telemetry)}).catch(()=>{});
-  beat();memberHeartbeat=setInterval(beat,30000);
+let heartbeatTimer=null,engineTimer=null;
+function startMemberRuntime(){
+  document.getElementById('memberLogin').style.display='none';
+  const beat=()=>apiCall('/api/heartbeat',{method:'POST',body:JSON.stringify(getDeviceTelemetry())}).catch(()=>{});
+  beat();if(heartbeatTimer)clearInterval(heartbeatTimer);heartbeatTimer=setInterval(beat,15000);
+  if(!window.__engineStarted){window.__engineStarted=true;bootEngine()}
+}
+async function memberLogin(){
+  const key=document.getElementById('memberKeyInput').value.trim();
+  if(!key){loginMessage('ENTER YOUR MEMBER KEY',true);return}
+  const btn=document.getElementById('memberLoginBtn');btn.disabled=true;btn.textContent='VERIFYING...';
+  try{await apiCall('/api/login',{method:'POST',body:JSON.stringify({key})});startMemberRuntime()}
+  catch(e){loginMessage(e.message,true)}
+  finally{btn.disabled=false;btn.textContent='LOGIN'}
 }
 document.getElementById('memberKeyInput').addEventListener('keydown',e=>{if(e.key==='Enter')memberLogin()});
-async function openAdmin(){
-  document.getElementById('adminPanel').classList.add('show');
-  document.getElementById('adminLoginBox').style.display='block';
-  document.getElementById('adminDashboard').style.display='none';
-  try{const r=await apiCall('/api/admin/me');if(r.admin)showAdminDashboard()}catch(e){}
+async function checkMemberSession(){
+  try{const d=await apiCall('/api/me');if(d.authenticated)startMemberRuntime()}
+  catch(e){document.getElementById('memberLogin').style.display='grid'}
 }
-function closeAdmin(){document.getElementById('adminPanel').classList.remove('show');if(adminRefreshTimer)clearInterval(adminRefreshTimer)}
-async function adminLogin(){
-  const secret=document.getElementById('adminSecretInput').value;
-  try{await apiCall('/api/admin/login',{method:'POST',body:JSON.stringify({secret})});showAdminDashboard()}catch(e){toast(e.message)}
-}
-function showAdminDashboard(){
-  document.getElementById('adminLoginBox').style.display='none';
-  document.getElementById('adminDashboard').style.display='block';
-  adminRefresh();if(adminRefreshTimer)clearInterval(adminRefreshTimer);adminRefreshTimer=setInterval(adminRefresh,15000);
-}
-function fmtDuration(sec){sec=Math.max(0,Number(sec)||0);const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return h+'h '+m+'m '+s+'s'}
-async function adminRefresh(){
-  try{
-    const data=await apiCall('/api/admin/overview');
-    document.getElementById('adminStats').innerHTML=[['TOTAL KEYS',data.stats.totalKeys],['ACTIVE KEYS',data.stats.activeKeys],['ONLINE NOW',data.stats.onlineNow],['TOTAL MEMBERS',data.stats.totalMembers]].map(x=>'<div class="admin-stat"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>').join('');
-    const members=data.members||[];
-    document.getElementById('adminMembers').innerHTML=members.length?members.map(m=>'<div class="admin-member"><strong>'+escapeHtml(m.label||m.keyHint||'Member')+'</strong><br>KEY: '+escapeHtml(m.keyHint||'—')+'<br>STATUS: <span class="'+(m.online?'online':'offline')+'">'+(m.online?'ONLINE':'OFFLINE')+'</span><br>ONLINE TIME: '+fmtDuration(m.totalOnlineSeconds)+'<br>SESSION STARTED: '+(m.sessionStartedAt?new Date(m.sessionStartedAt).toLocaleString():'Not active')+'<br>SESSION DURATION: '+(m.online?fmtDuration(m.sessionDurationSeconds):'Offline')+'<br>DEVICE: '+escapeHtml(m.deviceInfo||'Unknown')+'<br>DEVICE ID: '+escapeHtml(m.deviceId||'Not reported')+'<br>LAST ACTIVE: '+(m.lastSeen?new Date(m.lastSeen).toLocaleString():'Never')+'<br>EXPIRES: '+(m.expiresAt?new Date(m.expiresAt).toLocaleDateString():'—')+'<br>LOGIN COUNT: '+(m.loginCount||0)+'<br><button class="ghostbtn revoke-key" data-key-id="'+m.id+'" style="margin-top:8px">DELETE / REVOKE KEY</button></div>').join(''):'<div class="admin-member">No members yet.</div>';
-    document.querySelectorAll('.revoke-key').forEach(b=>b.onclick=()=>adminDeleteKey(b.dataset.keyId));
-    const top=members.slice().sort((a,b)=>(b.totalOnlineSeconds||0)-(a.totalOnlineSeconds||0))[0];
-    document.getElementById('adminTopMember').innerHTML=top?'<div class="admin-member"><strong>'+escapeHtml(top.label||top.keyHint||'Member')+'</strong><br>TOTAL ONLINE: '+fmtDuration(top.totalOnlineSeconds)+'</div>':'No activity yet.';
-  }catch(e){toast(e.message)}
-}
-function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function adminCreateKey(){
-  try{
-    const data=await apiCall('/api/admin/keys',{method:'POST',body:JSON.stringify({days:Number(document.getElementById('keyDays').value),label:document.getElementById('keyLabel').value.trim()})});
-    const box=document.getElementById('createdKey');box.style.display='block';box.innerHTML='NEW KEY (COPY NOW)<br><span>'+escapeHtml(data.key)+'</span> <button class="ghostbtn copy-generated-key">COPY KEY</button>';box.querySelector('.copy-generated-key').onclick=()=>navigator.clipboard.writeText(data.key).then(()=>toast('KEY COPIED'));
-    document.getElementById('keyLabel').value='';adminRefresh();
-  }catch(e){toast(e.message)}
-}
-async function adminDeleteKey(id){if(!confirm('Revoke this login key?'))return;try{await apiCall('/api/admin/keys/'+encodeURIComponent(id),{method:'DELETE'});toast('KEY REVOKED');adminRefresh()}catch(e){toast(e.message)}}
-async function adminLogout(){try{await apiCall('/api/admin/logout',{method:'POST',body:'{}'})}catch(e){}document.getElementById('adminDashboard').style.display='none';document.getElementById('adminLoginBox').style.display='block';document.getElementById('adminSecretInput').value=''}
 checkMemberSession();
+function openAdmin(){window.location.href='/admin'}
 </script>
 </body>
 </html>
