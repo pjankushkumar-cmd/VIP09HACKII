@@ -533,7 +533,7 @@ document.querySelectorAll('.ct-mode').forEach(m=>m.addEventListener('click',()=>
 function switchTab(id,el){document.querySelectorAll('.view-page').forEach(v=>v.classList.remove('active-view'));document.querySelectorAll('.ct-tab').forEach(t=>t.classList.remove('on'));document.getElementById(id).classList.add('active-view');if(el&&el.classList.contains('ct-tab'))el.classList.add('on');window.scrollTo(0,0)}
 
 const API_URL="https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json";
-let lastIssue=null,currentPred="BIG",targetNums=[6,8];
+let lastIssue=null,currentPred="—",targetNums=[];
 
 async function syncData(){try{const r=await fetch(API_URL+"?t="+Date.now());if(!r.ok)throw new Error("API HTTP "+r.status);const j=await r.json();if(j&&j.data&&j.data.list&&j.data.list.length>0)await processEngine(j.data.list)}catch(e){simEngine()}}
 async function processEngine(list){
@@ -590,7 +590,7 @@ function pushFull(p,pr,n,ac,w,j){const tb=document.getElementById('fullHistoryLo
 function addLog(m){const c=document.getElementById('logConsole');const l=document.createElement('div');l.innerText=m;c.appendChild(l);c.scrollTop=c.scrollHeight;while(c.children.length>30)c.removeChild(c.firstChild)}
 function updateTimer(){const n=new Date();const s=60-n.getSeconds();document.getElementById('timerClock').innerText='00:'+String(s).padStart(2,'0');if(s===60||s===1)syncData()}
 function bootEngine(){syncData();setInterval(updateTimer,1000);setInterval(syncData,3000)}
-function copyReport(){const p=document.getElementById('predResult').innerText;const pe=document.getElementById('periodNo').innerText;navigator.clipboard.writeText('HACKII PANEL\nPeriod: '+pe+'\nPrediction: '+p+'\nNumbers: '+targetNums.join(', '));toast('REPORT COPIED ✓')}
+function copyReport(){const p=document.getElementById('predResult').innerText;const pe=document.getElementById('periodNo').innerText;navigator.clipboard.writeText('HACKII PANEL\nPeriod: '+pe+'\nPrediction: '+p+'\nNumbers: '+(targetNums.length?targetNums.join(', '):'Waiting for server'));toast('REPORT COPIED ✓')}
 function exportHistory(){toast('LOGS EXPORTED ✓')}
 function clearHistory(){document.getElementById('historyLogs').innerHTML='';addLog('History cleared');toast('HISTORY RESET')}
 const dummy=[{p:'0394',pr:'BIG',n:6,ac:'BIG',w:true,j:false},{p:'0395',pr:'SMALL',n:3,ac:'SMALL',w:true,j:false},{p:'0396',pr:'BIG',n:8,ac:'BIG',w:true,j:true},{p:'0397',pr:'BIG',n:1,ac:'SMALL',w:false,j:false},{p:'0398',pr:'SMALL',n:2,ac:'SMALL',w:true,j:false},{p:'0399',pr:'BIG',n:7,ac:'BIG',w:true,j:true}];
