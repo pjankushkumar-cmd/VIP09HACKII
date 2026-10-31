@@ -565,10 +565,17 @@ function createChaCha20(){
     for(let i=0;i<16;i++)x[i]=(x[i]+s[i])>>>0;
     words=x;pos=0;
   }
-  function uint32(){if(pos>=16)refill();return words[pos++]>>>0;}
+  function chachaUint32(){if(pos>=16)refill();return words[pos++]>>>0;}
+  /* MIX: combine ChaCha20 output with an independent Web Crypto CSPRNG
+     word. XOR preserves uniformity when either source is uniform. */
+  const cryptoWord=new Uint32Array(1);
+  function mixedUint32(){
+    crypto.getRandomValues(cryptoWord);
+    return (chachaUint32() ^ cryptoWord[0])>>>0;
+  }
   function int(max){
     const limit=Math.floor(0x100000000/max)*max;
-    let v;do{v=uint32()}while(v>=limit);
+    let v;do{v=mixedUint32()}while(v>=limit);
     return v%max;
   }
   return {int};
