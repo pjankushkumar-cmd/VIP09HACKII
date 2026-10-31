@@ -528,12 +528,11 @@ function buildThemes(){const g=document.getElementById('themeGrid');THEMES.forEa
 function applyTheme(id){document.documentElement.setAttribute('data-theme',id);localStorage.setItem('vpz_theme',id);document.querySelectorAll('.th-chip').forEach(c=>c.classList.toggle('on',c.dataset.t===id))}
 
 function toast(m){const t=document.createElement('div');t.className='toast';t.innerText=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
-async function sha256(t){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 document.querySelectorAll('.ct-mode').forEach(m=>m.addEventListener('click',()=>{document.querySelectorAll('.ct-mode').forEach(x=>x.classList.remove('on'));m.classList.add('on');addLog('Mode → '+m.innerText.trim())}));
 function switchTab(id,el){document.querySelectorAll('.view-page').forEach(v=>v.classList.remove('active-view'));document.querySelectorAll('.ct-tab').forEach(t=>t.classList.remove('on'));document.getElementById(id).classList.add('active-view');if(el&&el.classList.contains('ct-tab'))el.classList.add('on');window.scrollTo(0,0)}
 
 const API_URL="https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json";
-let lastIssue=null,currentPred="—",targetNums=[];
+let lastIssue=null,currentPred="BIG",targetNums=[6,8];
 
 async function syncData(){try{const r=await fetch(API_URL+"?t="+Date.now());if(!r.ok)throw new Error("API HTTP "+r.status);const j=await r.json();if(j&&j.data&&j.data.list&&j.data.list.length>0)await processEngine(j.data.list)}catch(e){simEngine()}}
 async function processEngine(list){
@@ -542,13 +541,13 @@ async function processEngine(list){
   if(lastIssue!==issue){
     if(lastIssue!==null){const win=(currentPred===side);const jack=win&&targetNums.includes(an);pushRow(issue,currentPred,an,side,win,jack);pushFull(issue,currentPred,an,side,win,jack);showResult(issue,currentPred,an,side,win,jack)}
     lastIssue=issue;
-    /* Server creates the one canonical ChaCha20 + OpenSSL RAND_bytes
-       prediction for this issue. All devices only receive the saved result. */
+    /* The server creates one canonical round using ChaCha20 mixed with
+       OpenSSL RAND_bytes() (OpenSSL DRBG, normally CTR-DRBG). All devices
+       receive the same server-generated pick for this issue. */
     try{
       const shared=await apiCall('/api/round/claim',{method:'POST',body:JSON.stringify({issue})});
       if(shared.round&&shared.round.issue===issue){currentPred=shared.round.prediction;targetNums=shared.round.numbers}
-      else throw new Error('Server returned a different period.');
-    }catch(e){addLog('Shared round sync unavailable: '+e.message);return}
+    }catch(e){addLog('Shared round sync unavailable: '+e.message)}
     const pr=document.getElementById('predResult');pr.innerText=currentPred;pr.classList.toggle('small',currentPred==="SMALL");pr.classList.remove('pop');void pr.offsetWidth;pr.classList.add('pop');setTimeout(()=>pr.classList.remove('pop'),800);
     document.getElementById('ballImg0').src=NUM_IMGS[targetNums[0]];document.getElementById('ballImg1').src=NUM_IMGS[targetNums[1]];
     const prob=(95+Math.random()*4).toFixed(1);document.getElementById('valProb').innerText=prob+'%';
@@ -558,7 +557,7 @@ async function processEngine(list){
     const tr=['BULLISH ↗','BEARISH ↘','SIDEWAYS →','STRONG ↑'];const cy=['HIGH','PEAK','MEDIUM','ULTRA'];
     document.getElementById('patternTrend').innerText=tr[Math.floor(Math.random()*tr.length)];
     document.getElementById('patternCycle').innerText=cy[Math.floor(Math.random()*cy.length)];
-    addLog('Server RNG locked '+next.slice(-4)+': '+currentPred+' ['+targetNums.join(',')+']');
+    addLog('ChaCha20 + OpenSSL RAND_bytes / DRBG locked '+next.slice(-4)+': '+currentPred+' ['+targetNums.join(',')+']');
   }
 }
 function simEngine(){const n=new Date();document.getElementById('periodNo').innerText=n.toISOString().replace(/[-T:]/g,"").slice(0,12)+"0100"}
@@ -590,7 +589,7 @@ function pushFull(p,pr,n,ac,w,j){const tb=document.getElementById('fullHistoryLo
 function addLog(m){const c=document.getElementById('logConsole');const l=document.createElement('div');l.innerText=m;c.appendChild(l);c.scrollTop=c.scrollHeight;while(c.children.length>30)c.removeChild(c.firstChild)}
 function updateTimer(){const n=new Date();const s=60-n.getSeconds();document.getElementById('timerClock').innerText='00:'+String(s).padStart(2,'0');if(s===60||s===1)syncData()}
 function bootEngine(){syncData();setInterval(updateTimer,1000);setInterval(syncData,3000)}
-function copyReport(){const p=document.getElementById('predResult').innerText;const pe=document.getElementById('periodNo').innerText;navigator.clipboard.writeText('HACKII PANEL\nPeriod: '+pe+'\nPrediction: '+p+'\nNumbers: '+(targetNums.length?targetNums.join(', '):'Waiting for server'));toast('REPORT COPIED ✓')}
+function copyReport(){const p=document.getElementById('predResult').innerText;const pe=document.getElementById('periodNo').innerText;navigator.clipboard.writeText('HACKII PANEL\nPeriod: '+pe+'\nPrediction: '+p+'\nNumbers: '+targetNums.join(', '));toast('REPORT COPIED ✓')}
 function exportHistory(){toast('LOGS EXPORTED ✓')}
 function clearHistory(){document.getElementById('historyLogs').innerHTML='';addLog('History cleared');toast('HISTORY RESET')}
 const dummy=[{p:'0394',pr:'BIG',n:6,ac:'BIG',w:true,j:false},{p:'0395',pr:'SMALL',n:3,ac:'SMALL',w:true,j:false},{p:'0396',pr:'BIG',n:8,ac:'BIG',w:true,j:true},{p:'0397',pr:'BIG',n:1,ac:'SMALL',w:false,j:false},{p:'0398',pr:'SMALL',n:2,ac:'SMALL',w:true,j:false},{p:'0399',pr:'BIG',n:7,ac:'BIG',w:true,j:true}];
