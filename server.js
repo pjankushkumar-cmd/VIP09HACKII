@@ -9,6 +9,30 @@ function load(){try{return {...fresh(),...JSON.parse(fs.readFileSync(DATA_FILE,'
 let db=load();
 function save(){fs.mkdirSync(path.dirname(DATA_FILE),{recursive:true});const t=DATA_FILE+'.tmp';fs.writeFileSync(t,JSON.stringify(db,null,2),{mode:0o600});fs.renameSync(t,DATA_FILE)}
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex'),token=()=>crypto.randomBytes(32).toString('base64url');
+/* Server prediction RNG: ChaCha20 stream XORed with independent OpenSSL
+   RAND_bytes output. Node's crypto.randomBytes() is backed by OpenSSL RAND_bytes.
+   Rejection sampling avoids modulo bias when mapping bytes to small ranges. */
+function mixedRandomBytes(length){
+ const key=crypto.randomBytes(32),nonce=crypto.randomBytes(12),iv=Buffer.alloc(16);
+ nonce.copy(iv,4);
+ const cipher=crypto.createCipheriv('chacha20',key,iv);
+ const stream=Buffer.concat([cipher.update(Buffer.alloc(length)),cipher.final()]);
+ const openssl=crypto.randomBytes(length),out=Buffer.alloc(length);
+ for(let i=0;i<length;i++)out[i]=stream[i]^openssl[i];
+ return out;
+}
+function mixedRandomInt(max){
+ const range=0x100000000,limit=Math.floor(range/max)*max;
+ let n;
+ do{n=mixedRandomBytes(4).readUInt32BE(0)}while(n>=limit);
+ return n%max;
+}
+function createSharedPrediction(){
+ const prediction=mixedRandomInt(2)===0?'SMALL':'BIG';
+ const base=prediction==='SMALL'?0:5,chosen=[];
+ while(chosen.length<2){const n=base+mixedRandomInt(5);if(!chosen.includes(n))chosen.push(n)}
+ return {prediction,numbers:chosen};
+}
 function equal(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&crypto.timingSafeEqual(x,y)}
 function getCookies(req){const o={};for(const p of(req.headers.cookie||'').split(';')){const i=p.indexOf('=');if(i>0)o[p.slice(0,i).trim()]=decodeURIComponent(p.slice(i+1).trim())}return o}
 function setCookie(n,v,age){return `${n}=${encodeURIComponent(v)}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${age}${process.env.NODE_ENV==='production'?'; Secure':''}`}
@@ -31,7 +55,17 @@ async function route(req,res){
   const t=token(),n=Date.now();db.sessions.push({id:crypto.randomUUID(),keyId:r.id,tokenHash:sha(t),createdAt:n,lastSeen:n,lastCountedAt:n,expiresAt:n+SESSION_TTL});r.loginCount=(r.loginCount||0)+1;r.lastLoginAt=n;save();return send(res,200,{ok:true},{'Set-Cookie':setCookie(USER_COOKIE,t,SESSION_TTL/1000)});
  }
  if(req.method==='GET'&&p==='/api/round/current'){if(!needMember(req,res))return;return send(res,200,{round:db.sharedRound})}
- if(req.method==='POST'&&p==='/api/round/claim'){if(!needMember(req,res))return;const b=await readBody(req),issue=String(b.issue||'');const prediction=String(b.prediction||''),numbers=b.numbers;if(!/^\d{8,30}$/.test(issue)||!['BIG','SMALL'].includes(prediction)||!Array.isArray(numbers)||numbers.length!==2||numbers.some(n=>!Number.isInteger(n)||n<0||n>9)||numbers[0]===numbers[1]||numbers.some(n=>prediction==='BIG'?n<5:n>4))return send(res,400,{error:'Invalid round data.'});if(!db.sharedRound||BigInt(issue)>BigInt(db.sharedRound.issue)){db.sharedRound={issue,prediction,numbers,createdAt:Date.now()};save()}return send(res,200,{round:db.sharedRound})}
+ if(req.method==='POST'&&p==='/api/round/claim'){
+  if(!needMember(req,res))return;
+  const b=await readBody(req),issue=String(b.issue||'');
+  if(!/^\\d{8,30}$/.test(issue))return send(res,400,{error:'Invalid period number.'});
+  if(!db.sharedRound||BigInt(issue)>BigInt(db.sharedRound.issue)){
+   const pick=createSharedPrediction();
+   db.sharedRound={issue,prediction:pick.prediction,numbers:pick.numbers,createdAt:Date.now(),rng:'ChaCha20+OpenSSL-RAND_bytes'};
+   save();
+  }
+  return send(res,200,{round:db.sharedRound});
+ }
  if(req.method==='POST'&&p==='/api/logout'){const x=getMember(req);if(x){db.sessions=db.sessions.filter(s=>s.id!==x.session.id);save()}return send(res,200,{ok:true},{'Set-Cookie':clearCookie(USER_COOKIE)})}
  if(req.method==='GET'&&p==='/api/me'){const x=getMember(req);return send(res,200,{authenticated:!!x,member:x?{label:x.key.label,expiresAt:x.key.expiresAt}:null})}
  if(req.method==='POST'&&p==='/api/heartbeat'){const x=needMember(req,res);if(!x)return;const n=Date.now(),gap=n-(x.key.lastCountedAt||n);if(gap>0&&gap<=ONLINE_WINDOW*2)x.key.totalOnlineSeconds=(x.key.totalOnlineSeconds||0)+Math.floor(gap/1000);x.session.lastSeen=n;x.session.lastCountedAt=n;x.key.lastCountedAt=n;x.key.lastSeen=n;save();return send(res,200,{ok:true})}
