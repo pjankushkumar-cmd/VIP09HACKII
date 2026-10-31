@@ -16,12 +16,15 @@ On the member login screen, tap the **ADMIN PANEL** shield button (also availabl
 ## Notes
 - Render provides HTTPS. Never share `ADMIN_SECRET`.
 - Without the persistent disk, data may be lost on restart/redeploy.
-- The existing WinGo history API, period handling, shared-round storage, history, and UI are retained. Upcoming candidates are generated server-side using a mixed ChaCha20 + OpenSSL RAND_bytes-backed entropy + AES-256 CTR-DRBG construction. All authenticated devices receive the same saved prediction for a given issue. Random number selection does not guarantee the real game's outcome.
+- The existing WinGo history API and display rules are retained.
+- Upcoming picks are generated once on the server with ChaCha20 output XOR-mixed with fresh `crypto.randomBytes()` output. Node's `crypto.randomBytes()` uses OpenSSL's `RAND_bytes()` path; OpenSSL's configured DRBG (typically CTR-DRBG) supplies its random bytes.
+- SHA-256 is not used as an RNG. The server still uses SHA-256 only to hash login/session tokens securely; this is separate from the RNG.
+- Random selection does not predict or guarantee the real game's outcome.
 - Existing demo history rows and hard-coded performance labels remain from the source HTML; they are display samples, not verified live performance.
 
 
 ## Shared device state and member online time
-- A single server-side round record is saved for each API issue. The first authenticated device to claim an issue causes the server to generate and save its mixed ChaCha20 + OpenSSL RAND_bytes + AES-256 CTR-DRBG prediction; all other devices receive the same prediction and two candidate numbers from the server.
+- A single server-side round record is generated and saved for each API issue. The server generates the prediction and two candidate numbers; every authenticated device receives the same result for that issue.
 - Multiple devices can stay logged in with the same member key at the same time.
 - Admin member cards show cumulative online time and the current online session duration. Heartbeats run every 30 seconds; online status expires after 90 seconds without a heartbeat.
 - Keep the Render persistent disk mounted at `/var/data` so shared rounds, member sessions, and online-time totals survive restarts.

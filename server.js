@@ -4,80 +4,51 @@ const DATA_FILE=process.env.DATA_FILE||(fs.existsSync('/var/data')?'/var/data/ha
 const PUBLIC_DIR=path.join(__dirname,'public'),USER_COOKIE='hackii_session',ADMIN_COOKIE='hackii_admin';
 const SESSION_TTL=30*86400000,ONLINE_WINDOW=90000;
 if(!ADMIN_SECRET||ADMIN_SECRET.length<16){console.error('FATAL: Set ADMIN_SECRET in Render Environment (minimum 16 characters).');process.exit(1)}
+
 const fresh=()=>({keys:[],sessions:[],adminSessions:[],sharedRound:null});
+
+/* Server-side RNG:
+   - crypto.randomBytes() obtains entropy through OpenSSL RAND_bytes().
+   - OpenSSL's configured RAND provider supplies its DRBG (normally CTR-DRBG).
+   - ChaCha20 expands an independent fresh seed; its output is XOR-mixed with
+     fresh OpenSSL output. This is for unpredictable picks, not prediction of
+     the external lottery result.
+*/
+function createMixedRng(){
+  const key=crypto.randomBytes(32);
+  const nonce=crypto.randomBytes(12);
+  const iv=Buffer.concat([Buffer.alloc(4),nonce]);
+  const cipher=crypto.createCipheriv('chacha20',key,iv);
+  let pool=Buffer.alloc(0);
+  function bytes(n){
+    while(pool.length<n){
+      const chacha=cipher.update(Buffer.alloc(Math.max(64,n)));
+      const openssl=crypto.randomBytes(chacha.length);
+      const mixed=Buffer.alloc(chacha.length);
+      for(let i=0;i<chacha.length;i++)mixed[i]=chacha[i]^openssl[i];
+      pool=Buffer.concat([pool,mixed]);
+    }
+    const out=pool.subarray(0,n);pool=pool.subarray(n);return out;
+  }
+  function int(max){
+    const range=0x100000000,limit=Math.floor(range/max)*max;
+    let v;do{v=bytes(4).readUInt32BE(0)}while(v>=limit);
+    return v%max;
+  }
+  return {int};
+}
+function generateRound(issue){
+  const rng=createMixedRng();
+  const prediction=rng.int(2)===0?'SMALL':'BIG';
+  const min=prediction==='SMALL'?0:5,numbers=[];
+  while(numbers.length<2){const n=min+rng.int(5);if(!numbers.includes(n))numbers.push(n)}
+  return {issue,prediction,numbers,createdAt:Date.now()};
+}
+
 function load(){try{return {...fresh(),...JSON.parse(fs.readFileSync(DATA_FILE,'utf8'))}}catch{return fresh()}}
 let db=load();
 function save(){fs.mkdirSync(path.dirname(DATA_FILE),{recursive:true});const t=DATA_FILE+'.tmp';fs.writeFileSync(t,JSON.stringify(db,null,2),{mode:0o600});fs.renameSync(t,DATA_FILE)}
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex'),token=()=>crypto.randomBytes(32).toString('base64url');
-/* Server-side mixed CSPRNG for shared upcoming predictions.
-   OpenSSL RAND_bytes is accessed through Node's crypto.randomBytes().
-   AES-256 CTR-DRBG follows the no-derivation-function construction:
-   48 bytes of fresh entropy+nonce, 256-bit Key, 128-bit V, and Update.
-   ChaCha20 and CTR-DRBG outputs are XOR-mixed with fresh OpenSSL output. */
-function aes256Block(key,block){
- const c=crypto.createCipheriv('aes-256-ecb',key,null);
- c.setAutoPadding(false);
- return Buffer.concat([c.update(block),c.final()]);
-}
-function increment128(v){
- const out=Buffer.from(v);
- for(let i=15;i>=0;i--){out[i]=(out[i]+1)&255;if(out[i]!==0)break}
- return out;
-}
-function ctrDrbgBytes(length){
- let key=Buffer.alloc(32),v=Buffer.alloc(16);
- const seed=crypto.randomBytes(48); // OpenSSL RAND_bytes-backed entropy+nonce
- function update(provided){
-  let temp=Buffer.alloc(48);
-  for(let off=0;off<48;off+=16){v=increment128(v);aes256Block(key,v).copy(temp,off)}
-  for(let i=0;i<48;i++)temp[i]^=provided[i];
-  key=Buffer.from(temp.subarray(0,32));v=Buffer.from(temp.subarray(32,48));
- }
- update(seed);
- const out=Buffer.alloc(length);let offset=0;
- while(offset<length){
-  v=increment128(v);
-  const block=aes256Block(key,v),take=Math.min(16,length-offset);
-  block.copy(out,offset,0,take);offset+=take;
- }
- update(Buffer.alloc(48));
- return out;
-}
-function chacha20Bytes(length){
- const key=crypto.randomBytes(32),nonce=crypto.randomBytes(12),iv=Buffer.alloc(16);
- nonce.copy(iv,4);
- const cipher=crypto.createCipheriv('chacha20',key,iv);
- return Buffer.concat([cipher.update(Buffer.alloc(length)),cipher.final()]);
-}
-function mixedRandomBytes(length){
- const chacha=chacha20Bytes(length);
- const drbg=ctrDrbgBytes(length);
- const openssl=crypto.randomBytes(length),out=Buffer.alloc(length);
- for(let i=0;i<length;i++)out[i]=chacha[i]^drbg[i]^openssl[i];
- return out;
-}
-function mixedRandomInt(max){
- const range=0x100000000,limit=Math.floor(range/max)*max;
- let n;
- do{n=mixedRandomBytes(4).readUInt32BE(0)}while(n>=limit);
- return n%max;
-}
-function createSharedPrediction(previousRound=null){
- const prediction=mixedRandomInt(2)===0?'SMALL':'BIG';
- const base=prediction==='SMALL'?0:5;
- // Avoid carrying either previous candidate into the next period when
- // the same side is selected. This prevents a stale-looking repeated pair.
- const previousNumbers=previousRound && previousRound.prediction===prediction
-   && Array.isArray(previousRound.numbers) ? previousRound.numbers.map(Number) : [];
- let pool=[0,1,2,3,4].map(n=>base+n).filter(n=>!previousNumbers.includes(n));
- if(pool.length<2) pool=[0,1,2,3,4].map(n=>base+n);
- const chosen=[];
- while(chosen.length<2){
-  const index=mixedRandomInt(pool.length);
-  chosen.push(pool.splice(index,1)[0]);
- }
- return {prediction,numbers:chosen};
-}
 function equal(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&crypto.timingSafeEqual(x,y)}
 function getCookies(req){const o={};for(const p of(req.headers.cookie||'').split(';')){const i=p.indexOf('=');if(i>0)o[p.slice(0,i).trim()]=decodeURIComponent(p.slice(i+1).trim())}return o}
 function setCookie(n,v,age){return `${n}=${encodeURIComponent(v)}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${age}${process.env.NODE_ENV==='production'?'; Secure':''}`}
@@ -100,17 +71,7 @@ async function route(req,res){
   const t=token(),n=Date.now();db.sessions.push({id:crypto.randomUUID(),keyId:r.id,tokenHash:sha(t),createdAt:n,lastSeen:n,lastCountedAt:n,expiresAt:n+SESSION_TTL});r.loginCount=(r.loginCount||0)+1;r.lastLoginAt=n;save();return send(res,200,{ok:true},{'Set-Cookie':setCookie(USER_COOKIE,t,SESSION_TTL/1000)});
  }
  if(req.method==='GET'&&p==='/api/round/current'){if(!needMember(req,res))return;return send(res,200,{round:db.sharedRound})}
- if(req.method==='POST'&&p==='/api/round/claim'){
-  if(!needMember(req,res))return;
-  const b=await readBody(req),issue=String(b.issue||'');
-  if(!/^\\d{8,30}$/.test(issue))return send(res,400,{error:'Invalid period number.'});
-  if(!db.sharedRound||BigInt(issue)>BigInt(db.sharedRound.issue)){
-   const pick=createSharedPrediction(db.sharedRound);
-   db.sharedRound={issue,prediction:pick.prediction,numbers:pick.numbers,createdAt:Date.now(),rng:'ChaCha20+OpenSSL-RAND_bytes+AES-256-CTR-DRBG'};
-   save();
-  }
-  return send(res,200,{round:db.sharedRound});
- }
+ if(req.method==='POST'&&p==='/api/round/claim'){if(!needMember(req,res))return;const b=await readBody(req),issue=String(b.issue||'');if(!/^\d{8,30}$/.test(issue))return send(res,400,{error:'Invalid issue.'});if(!db.sharedRound||BigInt(issue)>BigInt(db.sharedRound.issue)){db.sharedRound=generateRound(issue);save()}return send(res,200,{round:db.sharedRound})}
  if(req.method==='POST'&&p==='/api/logout'){const x=getMember(req);if(x){db.sessions=db.sessions.filter(s=>s.id!==x.session.id);save()}return send(res,200,{ok:true},{'Set-Cookie':clearCookie(USER_COOKIE)})}
  if(req.method==='GET'&&p==='/api/me'){const x=getMember(req);return send(res,200,{authenticated:!!x,member:x?{label:x.key.label,expiresAt:x.key.expiresAt}:null})}
  if(req.method==='POST'&&p==='/api/heartbeat'){const x=needMember(req,res);if(!x)return;const n=Date.now(),gap=n-(x.key.lastCountedAt||n);if(gap>0&&gap<=ONLINE_WINDOW*2)x.key.totalOnlineSeconds=(x.key.totalOnlineSeconds||0)+Math.floor(gap/1000);x.session.lastSeen=n;x.session.lastCountedAt=n;x.key.lastCountedAt=n;x.key.lastSeen=n;save();return send(res,200,{ok:true})}
