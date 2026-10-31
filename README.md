@@ -16,5 +16,12 @@ On the member login screen, tap the **ADMIN PANEL** shield button (also availabl
 ## Notes
 - Render provides HTTPS. Never share `ADMIN_SECRET`.
 - Without the persistent disk, data may be lost on restart/redeploy.
-- The server polls the existing WinGo history API for the actual result. ChaCha20 runs once on the server per new API issue; its upcoming prediction and up to 20 settled result records are persisted on the Render disk and shared by every authenticated device. A prediction is random and does not guarantee the real game's outcome. If the upstream API is unavailable, the panel shows a sync error rather than inventing a result.
+- The existing WinGo history API and client-side ChaCha20 selection are retained. Random number selection does not guarantee the real game's outcome.
 - Existing demo history rows and hard-coded performance labels remain from the source HTML; they are display samples, not verified live performance.
+
+
+## Shared device state and member online time
+- A single server-side round record is saved for each API issue. The first authenticated device to submit a ChaCha20 candidate establishes that issue's shared prediction; all other devices receive the same prediction and two candidate numbers from the server.
+- Multiple devices can stay logged in with the same member key at the same time.
+- Admin member cards show cumulative online time and the current online session duration. Heartbeats run every 30 seconds; online status expires after 90 seconds without a heartbeat.
+- Keep the Render persistent disk mounted at `/var/data` so shared rounds, member sessions, and online-time totals survive restarts.
