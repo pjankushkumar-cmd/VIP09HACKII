@@ -62,10 +62,20 @@ function mixedRandomInt(max){
  do{n=mixedRandomBytes(4).readUInt32BE(0)}while(n>=limit);
  return n%max;
 }
-function createSharedPrediction(){
+function createSharedPrediction(previousRound=null){
  const prediction=mixedRandomInt(2)===0?'SMALL':'BIG';
- const base=prediction==='SMALL'?0:5,chosen=[];
- while(chosen.length<2){const n=base+mixedRandomInt(5);if(!chosen.includes(n))chosen.push(n)}
+ const base=prediction==='SMALL'?0:5;
+ // Avoid carrying either previous candidate into the next period when
+ // the same side is selected. This prevents a stale-looking repeated pair.
+ const previousNumbers=previousRound && previousRound.prediction===prediction
+   && Array.isArray(previousRound.numbers) ? previousRound.numbers.map(Number) : [];
+ let pool=[0,1,2,3,4].map(n=>base+n).filter(n=>!previousNumbers.includes(n));
+ if(pool.length<2) pool=[0,1,2,3,4].map(n=>base+n);
+ const chosen=[];
+ while(chosen.length<2){
+  const index=mixedRandomInt(pool.length);
+  chosen.push(pool.splice(index,1)[0]);
+ }
  return {prediction,numbers:chosen};
 }
 function equal(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&crypto.timingSafeEqual(x,y)}
@@ -95,7 +105,7 @@ async function route(req,res){
   const b=await readBody(req),issue=String(b.issue||'');
   if(!/^\\d{8,30}$/.test(issue))return send(res,400,{error:'Invalid period number.'});
   if(!db.sharedRound||BigInt(issue)>BigInt(db.sharedRound.issue)){
-   const pick=createSharedPrediction();
+   const pick=createSharedPrediction(db.sharedRound);
    db.sharedRound={issue,prediction:pick.prediction,numbers:pick.numbers,createdAt:Date.now(),rng:'ChaCha20+OpenSSL-RAND_bytes+AES-256-CTR-DRBG'};
    save();
   }
