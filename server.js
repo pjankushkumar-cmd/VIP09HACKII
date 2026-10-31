@@ -9,16 +9,51 @@ function load(){try{return {...fresh(),...JSON.parse(fs.readFileSync(DATA_FILE,'
 let db=load();
 function save(){fs.mkdirSync(path.dirname(DATA_FILE),{recursive:true});const t=DATA_FILE+'.tmp';fs.writeFileSync(t,JSON.stringify(db,null,2),{mode:0o600});fs.renameSync(t,DATA_FILE)}
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex'),token=()=>crypto.randomBytes(32).toString('base64url');
-/* Server prediction RNG: ChaCha20 stream XORed with independent OpenSSL
-   RAND_bytes output. Node's crypto.randomBytes() is backed by OpenSSL RAND_bytes.
-   Rejection sampling avoids modulo bias when mapping bytes to small ranges. */
-function mixedRandomBytes(length){
+/* Server-side mixed CSPRNG for shared upcoming predictions.
+   OpenSSL RAND_bytes is accessed through Node's crypto.randomBytes().
+   AES-256 CTR-DRBG follows the no-derivation-function construction:
+   48 bytes of fresh entropy+nonce, 256-bit Key, 128-bit V, and Update.
+   ChaCha20 and CTR-DRBG outputs are XOR-mixed with fresh OpenSSL output. */
+function aes256Block(key,block){
+ const c=crypto.createCipheriv('aes-256-ecb',key,null);
+ c.setAutoPadding(false);
+ return Buffer.concat([c.update(block),c.final()]);
+}
+function increment128(v){
+ const out=Buffer.from(v);
+ for(let i=15;i>=0;i--){out[i]=(out[i]+1)&255;if(out[i]!==0)break}
+ return out;
+}
+function ctrDrbgBytes(length){
+ let key=Buffer.alloc(32),v=Buffer.alloc(16);
+ const seed=crypto.randomBytes(48); // OpenSSL RAND_bytes-backed entropy+nonce
+ function update(provided){
+  let temp=Buffer.alloc(48);
+  for(let off=0;off<48;off+=16){v=increment128(v);aes256Block(key,v).copy(temp,off)}
+  for(let i=0;i<48;i++)temp[i]^=provided[i];
+  key=Buffer.from(temp.subarray(0,32));v=Buffer.from(temp.subarray(32,48));
+ }
+ update(seed);
+ const out=Buffer.alloc(length);let offset=0;
+ while(offset<length){
+  v=increment128(v);
+  const block=aes256Block(key,v),take=Math.min(16,length-offset);
+  block.copy(out,offset,0,take);offset+=take;
+ }
+ update(Buffer.alloc(48));
+ return out;
+}
+function chacha20Bytes(length){
  const key=crypto.randomBytes(32),nonce=crypto.randomBytes(12),iv=Buffer.alloc(16);
  nonce.copy(iv,4);
  const cipher=crypto.createCipheriv('chacha20',key,iv);
- const stream=Buffer.concat([cipher.update(Buffer.alloc(length)),cipher.final()]);
+ return Buffer.concat([cipher.update(Buffer.alloc(length)),cipher.final()]);
+}
+function mixedRandomBytes(length){
+ const chacha=chacha20Bytes(length);
+ const drbg=ctrDrbgBytes(length);
  const openssl=crypto.randomBytes(length),out=Buffer.alloc(length);
- for(let i=0;i<length;i++)out[i]=stream[i]^openssl[i];
+ for(let i=0;i<length;i++)out[i]=chacha[i]^drbg[i]^openssl[i];
  return out;
 }
 function mixedRandomInt(max){
@@ -61,7 +96,7 @@ async function route(req,res){
   if(!/^\\d{8,30}$/.test(issue))return send(res,400,{error:'Invalid period number.'});
   if(!db.sharedRound||BigInt(issue)>BigInt(db.sharedRound.issue)){
    const pick=createSharedPrediction();
-   db.sharedRound={issue,prediction:pick.prediction,numbers:pick.numbers,createdAt:Date.now(),rng:'ChaCha20+OpenSSL-RAND_bytes'};
+   db.sharedRound={issue,prediction:pick.prediction,numbers:pick.numbers,createdAt:Date.now(),rng:'ChaCha20+OpenSSL-RAND_bytes+AES-256-CTR-DRBG'};
    save();
   }
   return send(res,200,{round:db.sharedRound});
