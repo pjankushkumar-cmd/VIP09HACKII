@@ -18,3 +18,14 @@ On the member login screen, tap the **ADMIN PANEL** shield button (also availabl
 - Without the persistent disk, data may be lost on restart/redeploy.
 - The existing WinGo history API and client-side ChaCha20 selection are retained. Random number selection does not guarantee the real game's outcome.
 - Existing demo history rows and hard-coded performance labels remain from the source HTML; they are display samples, not verified live performance.
+
+
+## Shared ChaCha20 upcoming signal
+- The Node server fetches the official WinGo 1-minute history API.
+- For each newly observed official issue, the server generates exactly one ChaCha20 pick for the next issue and saves it to the persistent data file.
+- Every logged-in member reads that same saved signal from `/api/signal`; browser refreshes do not generate a new pick.
+- When the API publishes that upcoming issue's result, the server matches the saved prediction against the actual API number, records WIN/LOSS and exact-number JACKPOT, then creates the next period's shared signal.
+- If the official API is unavailable, the app reports a sync error and does not invent a local result.
+
+## Member activity details
+The Admin member list shows live/offline state, session start, current session duration, cumulative online time, last activity, login count, and a browser/device description. The Device ID is a random app-generated identifier stored by the browser; it is not an IMEI, serial number, or hardware identifier. Browser/platform details are supplied by the member's device.
